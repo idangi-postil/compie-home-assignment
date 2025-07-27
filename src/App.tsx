@@ -91,9 +91,9 @@ export default function ChatApp() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b p-4">
+      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 shadow-sm border-b border-white/20 p-4">
         <div className="flex items-center gap-3 max-w-4xl mx-auto">
           <Avatar className="h-10 w-10">
             <AvatarImage src="/placeholder.svg?height=40&width=40" />
@@ -186,7 +186,7 @@ export default function ChatApp() {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white dark:bg-gray-800 border-t p-4">
+      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 border-t border-white/20 p-4">
         <div className="flex gap-2 max-w-4xl mx-auto">
           <Input
             value={inputValue}
