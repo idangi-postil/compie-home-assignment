@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Bot, User } from "lucide-react";
+import Loader from "@/components/loader";
+import useChatSocket from "./api/useWebSocket";
 
 interface Message {
   id: string;
@@ -13,14 +15,9 @@ interface Message {
 }
 
 export default function ChatApp() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "שלום! אני כאן לעזור לך. איך אוכל לסייע?",
-      sender: "bot",
-      timestamp: new Date(),
-    },
-  ]);
+  const { isConnected, sendMessage, error, message } = useChatSocket();
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -33,33 +30,6 @@ export default function ChatApp() {
     scrollToBottom();
   }, [messages]);
 
-  const simulateBotResponse = () => {
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const responses = [
-        "זה נשמע מעניין! ספר לי עוד על זה.",
-        "אני מבין. איך אוכל לעזור לך עם זה?",
-        "תודה על השיתוף! יש לי כמה רעיונות.",
-        "זה שאלה מעולה. בואו נחשוב על זה יחד.",
-        "אני כאן לעזור! מה עוד תרצה לדעת?",
-      ];
-
-      const randomResponse =
-        responses[Math.floor(Math.random() * responses.length)];
-
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        text: randomResponse,
-        sender: "bot",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 2000);
-  };
-
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
@@ -69,12 +39,24 @@ export default function ChatApp() {
       sender: "user",
       timestamp: new Date(),
     };
+    sendMessage(inputValue); // Send message via WebSocket
+    setIsTyping(true);
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
-    simulateBotResponse();
   };
+  useEffect(() => {
+    if (message) {
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        text: message.message,
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+      setIsTyping(false);
+    }
+  }, [message]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -89,7 +71,9 @@ export default function ChatApp() {
       minute: "2-digit",
     });
   };
-
+  if (!isConnected || (!isConnected && !error)) {
+    return <Loader />;
+  }
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800">
       {/* Header */}
@@ -103,7 +87,6 @@ export default function ChatApp() {
           </Avatar>
           <div>
             <h1 className="font-semibold text-lg">צ'אט חכם</h1>
-            <p className="text-sm text-muted-foreground">מקוון עכשיו</p>
           </div>
         </div>
       </div>
