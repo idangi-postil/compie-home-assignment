@@ -1,24 +1,36 @@
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Bot, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bot, User } from "lucide-react";
 import Loader from "@/components/loader";
 import useChatSocket from "./api/useWebSocket";
+import Header from "./components/header";
+import SearchInput from "./components/searchInput";
+import MessageContent from "./components/messageContent";
 
 interface Message {
   id: string;
-  text: string;
+  value: string;
+  type: "text" | "image";
   sender: "user" | "bot";
   timestamp: Date;
 }
-
+const randomWords = [
+  "שלום",
+  "מה נשמע?",
+  "איך אתה מרגיש?",
+  "מה חדש?",
+  "מה קורה?",
+  "מה שלומך?",
+  "מה העניינים?",
+  "איך הולך?",
+  "מה המצב?",
+  "מה נשמע איתך?",
+];
 export default function ChatApp() {
   const { isConnected, sendMessage, error, message } = useChatSocket();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -30,40 +42,34 @@ export default function ChatApp() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = (value: string) => {
+    if (!value.trim()) return;
 
     const userMessage: Message = {
+      type: "text",
       id: Date.now().toString(),
-      text: inputValue,
+      value,
       sender: "user",
       timestamp: new Date(),
     };
-    sendMessage(inputValue); // Send message via WebSocket
+    sendMessage(randomWords[Math.floor(Math.random() * randomWords.length)]);
     setIsTyping(true);
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
   };
   useEffect(() => {
     if (message) {
       const botMessage: Message = {
         id: Date.now().toString(),
-        text: message.message,
+        value: message.message,
         sender: "bot",
         timestamp: new Date(),
+        type: message.type,
       };
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
     }
   }, [message]);
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("he-IL", {
@@ -76,22 +82,8 @@ export default function ChatApp() {
   }
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 shadow-sm border-b border-white/20 p-4">
-        <div className="flex items-center gap-3 max-w-4xl mx-auto">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/placeholder.svg?height=40&width=40" />
-            <AvatarFallback className="bg-blue-500 text-white">
-              <Bot className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="font-semibold text-lg">צ'אט חכם</h1>
-          </div>
-        </div>
-      </div>
+      <Header />
 
-      {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
         {messages.map((message) => (
           <div
@@ -113,15 +105,7 @@ export default function ChatApp() {
                 message.sender === "user" ? "order-1" : ""
               }`}
             >
-              <Card
-                className={`p-3 ${
-                  message.sender === "user"
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{message.text}</p>
-              </Card>
+              <MessageContent message={message} />
               <p
                 className={`text-xs text-muted-foreground mt-1 ${
                   message.sender === "user" ? "text-right" : "text-left"
@@ -141,7 +125,6 @@ export default function ChatApp() {
           </div>
         ))}
 
-        {/* Typing Indicator */}
         {isTyping && (
           <div className="flex gap-3 justify-start animate-in slide-in-from-bottom-2 duration-300">
             <Avatar className="h-8 w-8 mt-1">
@@ -167,27 +150,7 @@ export default function ChatApp() {
 
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input Area */}
-      <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 border-t border-white/20 p-4">
-        <div className="flex gap-2 max-w-4xl mx-auto">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyUp={handleKeyPress}
-            placeholder="הקלד הודעה..."
-            className="flex-1 rounded-full border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
-            dir="rtl"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isTyping}
-            className="rounded-full h-10 w-10 p-0 bg-blue-500 hover:bg-blue-600 disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <SearchInput handleSendMessage={handleSendMessage} isTyping={isTyping} />
     </div>
   );
 }

@@ -6,14 +6,16 @@ const useWebSocket = () => {
   const [lastMessage, setLastMessage] = useState<{
     command: string;
     message: string;
+    type: "text" | "image";
   } | null>(null);
   useEffect(() => {
     if (isConnected) {
-      socket.send(JSON.stringify({ command: "init" }));
+      socket.send(
+        JSON.stringify({ command: "init", message: "היי ברוך בואך" })
+      );
     }
   }, [isConnected]);
   socket.onopen = () => {
-    console.log("WebSocket connection established");
     setIsConnected(true);
     setError(null);
   };
@@ -28,11 +30,19 @@ const useWebSocket = () => {
 
   socket.onmessage = (event) => {
     setLastMessage(JSON.parse(event.data));
-    console.log("Message from server: ", event.data);
   };
   const sendMessage = (message: string) => {
     if (isConnected) {
-      socket.send(JSON.stringify({ command: "chat", message: message }));
+      const type = Math.random() < 0.5 ? "image" : "text";
+      const finalMessage =
+        type === "image" ? "https://picsum.photos/100" : message;
+      socket.send(
+        JSON.stringify({
+          command: "chat",
+          message: finalMessage,
+          type: type,
+        })
+      );
     }
   };
 
