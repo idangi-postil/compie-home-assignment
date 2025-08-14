@@ -1,174 +1,149 @@
-# 🤖 Smart Chat Application (צ'אט חכם)
+# Home Assignment - Chat Application
 
-An intelligent, real-time chat application built with modern web technologies. Features include random Hebrew message generation, dynamic content types (text/image), and a beautiful Hebrew-friendly interface with WebSocket connectivity.
+A React chat application with OpenAI integration, featuring UI tags, image selection, and streaming responses.
 
-## ✨ Features
+## Quick Start
 
-- **🎲 Random Message Generation** - Automatically sends random Hebrew greetings from a predefined list
-- **🖼️ Dynamic Content Types** - Randomly switches between text messages and image URLs
-- **� Image Integration** - Sends random images from Picsum Photos (https://picsum.photos/200)
-- **⚡ Real-time Communication** - WebSocket-based instant messaging
-- **🎨 Modern UI/UX** - Beautiful gradient backgrounds with glass-morphism effects
-- **🇮🇱 Hebrew Support** - Full RTL (Right-to-Left) text support with Hebrew interface
-- **📱 Responsive Design** - Seamless experience across desktop and mobile devices
-- **⏰ Message Timestamps** - Localized Hebrew timestamps for each message
-- **🔄 Connection Status** - Real-time WebSocket connection monitoring
-- **💫 Smooth Animations** - Elegant loading states and message transitions
+### 1. Environment Setup
 
-## 🛠️ Technology Stack
+Create a `.env.local` file in the root directory:
 
-- **Frontend Framework**: React 19+ with TypeScript
-- **Build Tool**: Vite 6+ for fast development and building
-- **Styling**: TailwindCSS 4+ with custom animations and Hebrew RTL support
-- **UI Components**: Shadcn/ui components built on Radix UI primitives
-- **WebSocket**: Native WebSocket API for real-time bidirectional communication
-- **Icons**: Lucide React for modern iconography
-- **Development Tools**: ESLint for code quality, TypeScript for type safety
+```env
+# OpenAI Configuration
+VITE_OPEN_AI_KEY=your-openai-api-key-here
+VITE_OPEN_AI_PROJECT_ID=your-openai-project-id-here
+VITE_OPENAI_MODEL=gpt-4o-mini
 
-## � Project Architecture
-
-```
-src/
-├── components/
-│   ├── ui/                    # Reusable UI components
-│   │   ├── avatar.tsx         # User/bot avatar component
-│   │   ├── button.tsx         # Styled button component
-│   │   ├── card.tsx           # Message card container
-│   │   └── input.tsx          # Text input component
-│   ├── header.tsx             # Application header
-│   └── loader.tsx             # Loading spinner component
-├── api/
-│   └── useWebSocket.ts        # WebSocket hook with random type generation
-├── lib/
-│   └── utils.ts              # Utility functions and helpers
-├── hooks/                    # Custom React hooks directory
-├── assets/                   # Static assets (images, icons)
-├── App.tsx                   # Main chat application component
-├── main.tsx                  # Application entry point
-├── index.css                 # Global styles and TailwindCSS
-└── vite-env.d.ts            # Vite environment types
+# Server Configuration
+VITE_SERVER_PORT=3001
+VITE_SERVER_URL=http://localhost:3001
 ```
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-Ensure you have these installed:
-
-- **Node.js** (version 18 or higher recommended)
-- **npm** or **yarn** package manager
-- Modern web browser with WebSocket support
-
-### Installation & Setup
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd homeAssignment-compie
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Start development server**
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-4. **Open your browser**
-
-   Navigate to `http://localhost:5173` (or the port shown in your terminal)
-
-## 🎯 Key Features Explained
-
-### 🖼️ Dynamic Content Types
-
-Messages are randomly assigned as either text or image:
-
-- **Text Messages**: Uses the randomly selected Hebrew phrases
-- **Image Messages**: Automatically sends `https://picsum.photos/200` for random images
-
-### ⚡ WebSocket Integration
-
-- **Endpoint**: `wss://ws.postman-echo.com/raw`
-- **Auto-connection**: Establishes connection on app load
-- **Message Format**: JSON with command, message, and type fields
-- **Real-time**: Bidirectional communication with instant responses
-
-## �️ Development Commands
-
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `npm run dev`     | Start development server with hot reload |
-| `npm run build`   | Build optimized production bundle        |
-| `npm run preview` | Preview production build locally         |
-| `npm run lint`    | Run ESLint for code quality checks       |
-
-## � UI/UX Features
-
-### Design Elements
-
-- **Gradient Backgrounds**: Beautiful color transitions from slate to purple to teal
-- **Glass Morphism**: Modern frosted glass effects on cards and components
-- **Hebrew Typography**: Properly configured RTL text rendering
-- **Responsive Layout**: Mobile-first design that scales beautifully
-
-### Interactive Elements
-
-- **Typing Indicators**: Animated dots show when bot is responding
-- **Smooth Animations**: CSS transitions for message appearance
-- **Auto-scroll**: Messages automatically scroll into view
-- **Connection Status**: Visual indicators for WebSocket connection state
-
-## 🔧 Configuration Options
-
-### WebSocket Settings
-
-Modify the WebSocket endpoint in `src/api/useWebSocket.ts`:
-
-```typescript
-const socket = new WebSocket("your-custom-websocket-url");
-```
-
-### Random Word List
-
-Customize the Hebrew phrases in `src/App.tsx`:
-
-```typescript
-const randomWords = [
-  // Add your custom Hebrew phrases here
-];
-```
-
-### Styling Customization
-
-- **TailwindCSS**: Modify `tailwind.config.js` for custom themes
-- **CSS Variables**: Update color schemes in `src/index.css`
-- **Component Styles**: Individual component styling in respective files
-
-## � Browser Compatibility
-
-- ✅ Chrome 60+
-- ✅ Firefox 55+
-- ✅ Safari 11+
-- ✅ Edge 79+
-- ✅ Mobile browsers (iOS Safari, Android Chrome)
-
-## 🚀 Deployment
-
-### Build for Production
+### 2. Install Dependencies
 
 ```bash
-npm run build
+# Install frontend dependencies
+npm install
+
+# Install server dependencies
+cd server
+npm install
+cd ..
 ```
 
-**Built with ❤️ and ☕ for the modern web**
+### 3. Running the Application
+
+#### Option A: With Real OpenAI API
+
+1. **Start the OpenAI server:**
+
+   ```bash
+   cd server
+   npm run dev
+   ```
+
+2. **Start the frontend** (in a new terminal):
+   ```bash
+   npm run dev
+   ```
+
+#### Option B: With Mock Server (No OpenAI API Key Required)
+
+1. **Start the mock server:**
+
+   ```bash
+   cd server
+   npm run dev:mock
+   ```
+
+2. **Start the frontend** (in a new terminal):
+   ```bash
+   npm run dev
+   ```
+
+### 4. Access the Application
+
+- **Frontend**: http://localhost:5173 (or the port shown in terminal)
+- **Server Health Check**: http://localhost:3001/health
+
+## Features
+
+- **Real-time Chat** - Streaming responses with typing indicators
+- **Image Selection** - Select and send images from the gallery
+- **UI Tags** - Automatic rendering of images, videos, links, and quizzes
+- **Responsive Design** - Works on desktop and mobile
+- **Dark Mode Support** - Automatic theme detection
+
+## Environment Variables
+
+| Variable                  | Description                      | Required           | Default                 |
+| ------------------------- | -------------------------------- | ------------------ | ----------------------- |
+| `VITE_OPEN_AI_KEY`        | Your OpenAI API key              | Yes (for real API) | -                       |
+| `VITE_OPEN_AI_PROJECT_ID` | Your OpenAI project ID           | Yes (for real API) | -                       |
+| `VITE_OPENAI_MODEL`       | OpenAI model to use              | No                 | `gpt-4o-mini`           |
+| `VITE_SERVER_PORT`        | Server port                      | No                 | `3001`                  |
+| `VITE_SERVER_URL`         | Backend server URL for API calls | No                 | `http://localhost:3001` |
+
+## Getting OpenAI API Keys
+
+1. Go to [OpenAI Platform](https://platform.openai.com)
+2. Sign up or log in
+3. Navigate to API Keys section
+4. Create a new API key
+5. Copy the key to your `.env.local` file
+
+## Mock Server vs Real Server
+
+### Mock Server
+
+- **Use when**: Testing the UI without OpenAI costs
+- **Features**: Pre-defined responses with all UI tag types
+- **Command**: `npm run dev:mock`
+- **No API key required**
+
+### Real Server
+
+- **Use when**: Testing with actual OpenAI responses
+- **Features**: Dynamic AI responses with UI tags
+- **Command**: `npm run dev`
+- **Requires OpenAI API key**
+
+## Project Structure
+
+```
+├── src/
+│   ├── components/        # React components
+│   ├── routes/           # Page components
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions
+│   └── contexts/         # React contexts
+├── server/
+│   ├── src/
+│   │   ├── index.ts      # Real OpenAI server
+│   │   └── mock-server.ts # Mock server
+│   └── package.json
+└── README.md
+```
+
+## Troubleshooting
+
+### Server won't start
+
+- Check if port 3001 is available
+- Verify your `.env.local` file exists and has correct format
+
+## Development Commands
+
+```bash
+# Frontend
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Server
+cd server
+npm run dev          # Start OpenAI server with hot reload
+npm run dev:mock     # Start mock server with hot reload
+npm run build        # Build TypeScript to JavaScript
+npm start            # Start production server
+```

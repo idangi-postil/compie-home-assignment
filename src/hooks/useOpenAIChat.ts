@@ -17,7 +17,7 @@ interface UseOpenAIChatResult {
 }
 
 export function useOpenAIChat(
-  serverUrl: string = "http://localhost:3001"
+  serverUrl: string = import.meta.env.VITE_SERVER_URL || "http://localhost:3001"
 ): UseOpenAIChatResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

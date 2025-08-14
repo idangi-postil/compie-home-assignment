@@ -8,7 +8,7 @@ import fs from "fs";
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.VITE_SERVER_PORT || 3001;
 
 // Middleware
 app.use(cors());
