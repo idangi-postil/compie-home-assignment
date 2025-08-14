@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
-import { Send, X } from "lucide-react";
+import { ImagePlus, Send, X } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 import { useImageContext } from "../contexts/ImageContext";
 interface SearchInputProps {
@@ -11,6 +12,7 @@ interface SearchInputProps {
   isTyping: boolean;
 }
 const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedImages, clearSelectedImages, removeImage } =
@@ -48,6 +50,10 @@ const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
     );
     setInputValue("");
     clearSelectedImages();
+  };
+
+  const handleImageGalleryClick = () => {
+    navigate("/gallery");
   };
   return (
     <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 border-t border-white/20 p-4">
@@ -88,7 +94,16 @@ const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Button
+            onClick={handleImageGalleryClick}
+            variant="outline"
+            size="sm"
+            className="rounded-full h-11 w-11 p-0"
+            title="Select images from gallery"
+          >
+            <ImagePlus className="h-4 w-4" />
+          </Button>
           <Textarea
             ref={textareaRef}
             value={inputValue}

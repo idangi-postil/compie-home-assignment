@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Bot, User, ArrowDown } from "lucide-react";
 import SearchInput from "../components/searchInput";
 import MessageContent from "../components/messageContent";
+import StreamingMessage from "../components/StreamingMessage";
 import { useOpenAIChat } from "../hooks/useOpenAIChat";
 import formatTime from "../lib/formatTime";
 
@@ -185,10 +186,7 @@ export default function ChatPage() {
             </Avatar>
             <Card className="p-3 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 max-w-[80%] sm:max-w-[70%]">
               {currentBotMessage ? (
-                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {currentBotMessage}
-                  <span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
-                </div>
+                <StreamingMessage content={currentBotMessage} />
               ) : (
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
