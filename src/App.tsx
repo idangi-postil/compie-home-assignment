@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, User } from "lucide-react";
-import Loader from "@/components/loader";
-import useChatSocket from "./api/useWebSocket";
 import Header from "./components/header";
 import SearchInput from "./components/searchInput";
 import MessageContent from "./components/messageContent";
+import { useOpenAIChat } from "./hooks/useOpenAIChat";
+import formatTime from "./lib/formatTime";
 
 interface Message {
   id: string;
@@ -15,23 +15,12 @@ interface Message {
   sender: "user" | "bot";
   timestamp: Date;
 }
-const randomWords = [
-  "שלום",
-  "מה נשמע?",
-  "איך אתה מרגיש?",
-  "מה חדש?",
-  "מה קורה?",
-  "מה שלומך?",
-  "מה העניינים?",
-  "איך הולך?",
-  "מה המצב?",
-  "מה נשמע איתך?",
-];
-export default function ChatApp() {
-  const { isConnected, sendMessage, error, message } = useChatSocket();
 
+export default function ChatApp() {
+  const { sendMessage, isLoading, error } = useOpenAIChat();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [currentBotMessage, setCurrentBotMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -40,11 +29,12 @@ export default function ChatApp() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, currentBotMessage]);
 
-  const handleSendMessage = (value: string) => {
-    if (!value.trim()) return;
+  const handleSendMessage = async (value: string) => {
+    if (!value.trim() || isLoading) return;
 
+    // Add user message
     const userMessage: Message = {
       type: "text",
       id: Date.now().toString(),
@@ -52,37 +42,58 @@ export default function ChatApp() {
       sender: "user",
       timestamp: new Date(),
     };
-    sendMessage(randomWords[Math.floor(Math.random() * randomWords.length)]);
-    setIsTyping(true);
 
     setMessages((prev) => [...prev, userMessage]);
-  };
-  useEffect(() => {
-    if (message) {
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        value: message.message,
-        sender: "bot",
-        timestamp: new Date(),
-        type: message.type,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-      setIsTyping(false);
-    }
-  }, [message]);
+    setIsTyping(true);
+    setCurrentBotMessage("");
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("he-IL", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    // Send message to AI and handle streaming response
+    await sendMessage(
+      value,
+      // onChunk: handle streaming content (now receives complete content, not chunks)
+      (content: string) => {
+        setCurrentBotMessage(content);
+      },
+      // onComplete: finalize the bot message
+      () => {
+        setCurrentBotMessage((prev) => {
+          if (prev.trim()) {
+            const botMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              value: prev.trim(),
+              sender: "bot",
+              timestamp: new Date(),
+              type: "text",
+            };
+            setMessages((prevMessages) => [...prevMessages, botMessage]);
+          }
+          return "";
+        });
+        setIsTyping(false);
+      }
+    );
+
+    // If there was an error, stop typing
+    if (error) {
+      setIsTyping(false);
+      setCurrentBotMessage("");
+    }
   };
-  if (!isConnected || (!isConnected && !error)) {
-    return <Loader />;
-  }
+
+  // Remove the loader condition - show the chat interface immediately
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-800">
       <Header />
+
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mx-4 mt-2 rounded">
+          <p>
+            <strong>שגיאה:</strong> {error}
+          </p>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
         {messages.map((message) => (
@@ -125,32 +136,44 @@ export default function ChatApp() {
           </div>
         ))}
 
-        {isTyping && (
+        {/* Show typing indicator with streaming content */}
+        {(isTyping || currentBotMessage) && (
           <div className="flex gap-3 justify-start animate-in slide-in-from-bottom-2 duration-300">
             <Avatar className="h-8 w-8 mt-1">
               <AvatarFallback className="bg-gray-500 text-white">
                 <Bot className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
-            <Card className="p-3 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
+            <Card className="p-3 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 max-w-[80%] sm:max-w-[70%]">
+              {currentBotMessage ? (
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {currentBotMessage}
+                  <span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+              )}
             </Card>
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
-      <SearchInput handleSendMessage={handleSendMessage} isTyping={isTyping} />
+
+      <SearchInput
+        handleSendMessage={handleSendMessage}
+        isTyping={isLoading || isTyping}
+      />
     </div>
   );
 }
