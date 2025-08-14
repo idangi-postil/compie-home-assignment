@@ -13,10 +13,10 @@ Create a `.env.local` file in the root directory:
 VITE_OPEN_AI_KEY=your-openai-api-key-here
 VITE_OPEN_AI_PROJECT_ID=your-openai-project-id-here
 VITE_OPENAI_MODEL=gpt-4o-mini
+VITE_SERVER_URL=http://localhost:3001
 
 # Server Configuration
 VITE_SERVER_PORT=3001
-VITE_SERVER_URL=http://localhost:3001
 ```
 
 ### 2. Install Dependencies
@@ -72,7 +72,6 @@ cd ..
 - **Image Selection** - Select and send images from the gallery
 - **UI Tags** - Automatic rendering of images, videos, links, and quizzes
 - **Responsive Design** - Works on desktop and mobile
-- **Dark Mode Support** - Automatic theme detection
 
 ## Environment Variables
 
