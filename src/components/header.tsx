@@ -17,7 +17,7 @@ const Header = () => {
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="font-semibold text-lg">Smart chat</h1>
+            <h1 className="font-semibold text-lg">Compie AI</h1>
           </div>
         </div>
 

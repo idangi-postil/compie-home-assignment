@@ -4,7 +4,10 @@ import { Send, X } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 import { useImageContext } from "../contexts/ImageContext";
 interface SearchInputProps {
-  handleSendMessage: (value: string) => void;
+  handleSendMessage: (
+    value: string,
+    images?: Array<{ id: string; author: string; url: string }>
+  ) => void;
   isTyping: boolean;
 }
 const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
@@ -31,19 +34,18 @@ const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
   const sendMessage = () => {
     if (!inputValue.trim() && selectedImages.length === 0) return;
 
-    // Create message content with text and images
-    let messageContent = inputValue.trim();
-    if (selectedImages.length > 0) {
-      const imageUrls = selectedImages.map(
-        (img) => `https://picsum.photos/400/400?random=${img.id}`
-      );
-      messageContent +=
-        (messageContent ? "\n\n" : "") +
-        "Selected images:\n" +
-        imageUrls.join("\n");
-    }
+    // Prepare images data for the message
+    const imagesData = selectedImages.map((img) => ({
+      id: img.id,
+      author: img.author,
+      url: `https://picsum.photos/400/400?random=${img.id}`,
+    }));
 
-    handleSendMessage(messageContent);
+    // Send message with text and images separately
+    handleSendMessage(
+      inputValue.trim(),
+      imagesData.length > 0 ? imagesData : undefined
+    );
     setInputValue("");
     clearSelectedImages();
   };
@@ -94,7 +96,6 @@ const SearchInput = ({ handleSendMessage, isTyping }: SearchInputProps) => {
             onKeyDown={handleKeyPress}
             placeholder="Ask anything"
             className="flex-1 rounded-2xl border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 focus:ring-1 px-4 py-3 text-base shadow-sm transition-[color,box-shadow] outline-none resize-none min-h-[2.75rem] max-h-32 overflow-y-auto bg-white dark:bg-gray-800"
-            dir="rtl"
             rows={1}
           />
           <Button

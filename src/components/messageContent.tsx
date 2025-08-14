@@ -9,6 +9,11 @@ interface MessageContentProps {
     type: "text" | "image";
     sender: "user" | "bot";
     timestamp: Date;
+    images?: Array<{
+      id: string;
+      author: string;
+      url: string;
+    }>;
   };
 }
 
@@ -69,12 +74,41 @@ const MessageContent = ({ message }: MessageContentProps) => {
     );
   }
 
-  // Regular text message for users
+  // Regular text message for users (and bots without UI tags)
   return (
     <Card className={cardClasses}>
-      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-        {message.value}
-      </p>
+      <div className="space-y-2">
+        {/* Render text content if present */}
+        {message.value && (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.value}
+          </p>
+        )}
+
+        {/* Render images if present */}
+        {message.images && message.images.length > 0 && (
+          <div className="space-y-2">
+            {message.images.map((image) => (
+              <div key={image.id} className="relative">
+                <img
+                  src={image.url}
+                  alt={`Photo by ${image.author}`}
+                  className="max-w-full h-auto rounded-lg shadow-sm max-h-64 object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
+                <div className="absolute bottom-2 left-2">
+                  <div className="bg-black/50 text-white text-xs px-2 py-1 rounded">
+                    by {image.author}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </Card>
   );
 };

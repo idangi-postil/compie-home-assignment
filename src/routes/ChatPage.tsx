@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bot, User, ArrowDown } from "lucide-react";
 import SearchInput from "../components/searchInput";
 import MessageContent from "../components/messageContent";
 import { useOpenAIChat } from "../hooks/useOpenAIChat";
@@ -13,6 +14,11 @@ interface Message {
   type: "text" | "image";
   sender: "user" | "bot";
   timestamp: Date;
+  images?: Array<{
+    id: string;
+    author: string;
+    url: string;
+  }>;
 }
 
 export default function ChatPage() {
@@ -20,33 +26,73 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [currentBotMessage, setCurrentBotMessage] = useState("");
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      console.log("Scroll debug:", {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        isNearBottom,
+      });
+      setShowScrollButton(!isNearBottom && messages.length > 0);
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentBotMessage]);
 
-  const handleSendMessage = async (value: string) => {
-    if (!value.trim() || isLoading) return;
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener("scroll", handleScroll);
+      // Initial check
+      handleScroll();
+      return () => {
+        chatContainer.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (
+    value: string,
+    images?: Array<{ id: string; author: string; url: string }>
+  ) => {
+    if ((!value.trim() && !images?.length) || isLoading) return;
 
     const userMessage: Message = {
       type: "text",
       id: Date.now().toString(),
-      value,
+      value: value.trim(),
       sender: "user",
       timestamp: new Date(),
+      images: images,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
     setCurrentBotMessage("");
 
+    let messageForAI = value.trim();
+    if (images && images.length > 0) {
+      messageForAI +=
+        (messageForAI ? "\n\n" : "") +
+        `I'm sharing ${images.length} image(s) with you. Please acknowledge that you can see the images I've shared.`;
+    }
+
     await sendMessage(
-      value,
+      messageForAI,
       (content: string) => {
         setCurrentBotMessage(content);
       },
@@ -86,7 +132,10 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full relative"
+      >
         {messages.map((message) => (
           <div
             key={message.id}
@@ -127,7 +176,6 @@ export default function ChatPage() {
           </div>
         ))}
 
-        {/* Show typing indicator with streaming content */}
         {(isTyping || currentBotMessage) && (
           <div className="flex gap-3 justify-start animate-in slide-in-from-bottom-2 duration-300">
             <Avatar className="h-8 w-8 mt-1">
@@ -160,6 +208,18 @@ export default function ChatPage() {
 
         <div ref={messagesEndRef} />
       </div>
+
+      {showScrollButton && (
+        <div className="fixed bottom-20 right-6 z-10">
+          <Button
+            onClick={scrollToBottom}
+            size="sm"
+            className="rounded-full h-10 w-10 p-0 bg-blue-500 hover:bg-blue-600 shadow-lg"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <SearchInput
         handleSendMessage={handleSendMessage}
